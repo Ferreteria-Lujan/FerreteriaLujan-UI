@@ -26,7 +26,9 @@ const MODULOS = [
     to: '/inventario', label: 'Inventario', Icon: IconBox,
     sub: [
       { to: '/inventario/productos',      label: 'Productos',      Icon: IconBox },
+      { to: '/inventario/productos/nueva',      label: 'Nuevo producto',      Icon: IconBox },
       { to: '/inventario/transferencias', label: 'Transferencias', Icon: IconTransfer },
+      { to: '/inventario/transferencias/nueva', label: 'Nueva transferencia', Icon: IconTransfer },
     ],
   },
 ]

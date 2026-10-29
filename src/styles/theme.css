@@ -16,7 +16,7 @@
   --text-dim: #5d5d5d;      /* números de fila, páginas inactivas */
   --warn-text: #dcae0a;     /* Pendiente */
   --font-ventas: 'Lato', 'Segoe UI', system-ui, sans-serif;
-  --header-h: 96px;         /* alto del header (logo + navbar de 2 filas) */
+  --header-h: 120px;         /* alto del header (logo + navbar de 2 filas) */
   --font: 'Noto Sans', 'Segoe UI', system-ui, sans-serif;
 }
 
@@ -33,7 +33,7 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
   min-height: var(--header-h);
   display: flex; align-items: center; justify-content: space-between;
 }
-.app-header img { height: 48px; display: block; }
+.app-header img { height: 75px; display: block; }
 .app-content { padding: 16px 24px; }
 
 /* Botones */
@@ -76,7 +76,7 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
   font-family: var(--font-ventas);
 }
 .nav-modulos { display: flex; gap: 12px; }
-.nav-sub { display: flex; gap: 20px; min-height: 22px; }
+.nav-sub { display: flex; gap: 20px; min-height: 35px; }
 .subnav-item {
   display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 3px;
   color: var(--text-muted); font-size: .8rem; text-decoration: none;

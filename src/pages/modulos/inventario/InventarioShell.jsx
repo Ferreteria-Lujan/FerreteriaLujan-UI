@@ -8,15 +8,6 @@ export default function InventarioShell({ busqueda, onBusqueda, placeholder, est
     <section className="ventas-page">
       <h1 className="ventas-titulo">Módulo de Inventario</h1>
 
-      <div className="acciones-cards">
-        <button className="accion-card" type="button" onClick={() => { /* TODO: pantalla de nuevo producto */ }}>
-          Nuevo Producto <span className="accion-icono"><IconBox /></span>
-        </button>
-        <Link className="accion-card" to="/inventario/transferencias/nueva">
-          Nueva Transferencia <span className="accion-icono"><IconDocument /></span>
-        </Link>
-      </div>
-
       <div className="filtros">
         <label className="campo-caja buscador">
           <IconSearch />
