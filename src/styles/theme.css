@@ -333,3 +333,48 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
   display: flex; justify-content: flex-end; align-items: center; gap: 20px; padding: 10px 20px;
   background: var(--surface); border-top: 1px solid var(--border-table); font-size: .9rem; color: var(--text-title);
 }
+
+/* ---------- Venta Directa (reusa .panel-form, .campo, .stepper, .items-*) ---------- */
+.venta-grid { flex: 1; display: grid; grid-template-columns: 1fr 280px; gap: 12px; align-items: start; }
+.venta-grid .form-paneles { align-self: stretch; }
+.venta-lateral { display: flex; flex-direction: column; gap: 12px; font-family: var(--font-ventas); }
+.select-caja select:disabled { opacity: .5; cursor: default; }
+
+.resumen { display: flex; flex-direction: column; padding: 4px 20px; }
+.resumen-fila {
+  display: flex; justify-content: space-between; align-items: center; padding: 10px 0;
+  border-bottom: 1px solid rgba(103,103,103,.3); font-size: .8rem; color: var(--text-title);
+}
+.resumen-fila span { color: var(--gris-input); }
+.resumen-fila.total { border-bottom: 0; padding: 14px 0 10px; }
+.resumen-fila.total span { color: var(--text-title); font-weight: 700; font-size: .9rem; }
+.resumen-fila.total strong { color: var(--accent); font-size: 1rem; }
+.resumen-pie { background: var(--surface); padding: 0 20px 16px; border-top: 1px solid rgba(103,103,103,.3); padding-top: 12px; }
+.btn-confirmar { width: 100%; }
+
+.deposito-info { display: flex; flex-direction: column; gap: 6px; font-size: .8rem; color: var(--text-title); }
+.deposito-info small { color: var(--gris-input); font-size: .7rem; }
+
+@media (max-width: 1000px) {
+  .venta-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- Facturas de venta (reusa .filtros, .buscador, .filtro-estado y .tabla-ventas) ---------- */
+.filtros .btn-agregar { white-space: nowrap; }
+.tabla-ventas.tabla-facturas .fila { grid-template-columns: 64px 140px 1fr 120px 130px 150px 110px 70px; }
+.estado-vencida { color: var(--danger); }
+
+/* ---------- Sin scroll: la app ocupa exactamente la pantalla ---------- */
+html, body, #root { height: 100%; }
+body { overflow: hidden; }
+#root { display: flex; flex-direction: column; }
+.app-header { flex: none; }
+.app-content { flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.ventas-page { flex: 1; min-height: 0; }
+.tabla-ventas { min-height: 0; }
+.venta-grid { min-height: 0; grid-template-rows: minmax(0, 1fr); }
+.form-paneles { min-height: 0; }
+.items-cuerpo { min-height: 0; overflow-y: auto; }   /* única lista que puede crecer sin límite: se desplaza por dentro, sin barra visible */
+.items-fila { flex: none; }
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; }
