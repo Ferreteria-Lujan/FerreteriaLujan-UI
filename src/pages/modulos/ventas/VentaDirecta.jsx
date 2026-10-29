@@ -210,6 +210,34 @@ export default function VentaDirecta() {
             </div>
           </div>
         </div>
+
+        {/* Columna derecha */}
+        <aside className="venta-lateral">
+          <div className="panel-form">
+            <div className="panel-titulo">Resumen</div>
+            <div className="panel-cuerpo resumen">
+              <div className="resumen-fila"><span>Fecha:</span><strong>{hoy()}</strong></div>
+              <div className="resumen-fila"><span>Subtotal:</span><strong>{gs(subtotal)}</strong></div>
+              <div className="resumen-fila"><span>IVA (10%):</span><strong>{gs(iva)}</strong></div>
+              <div className="resumen-fila total"><span>Total:</span><strong>{gs(total)}</strong></div>
+            </div>
+            <div className="resumen-pie">
+              <button type="button" className="btn-agregar btn-confirmar"
+                      disabled={!cliente || items.length === 0} onClick={confirmar}>
+                Confirmar Venta
+              </button>
+            </div>
+          </div>
+
+          <div className="panel-form">
+            <div className="panel-titulo">Depósito Seleccionado</div>
+            <div className="panel-cuerpo deposito-info">
+              <span>{deposito.nombre}</span>
+              <small>Stock disponible para descuento</small>
+              {producto && <small>{producto.codigo}: {disponible} unidades</small>}
+            </div>
+          </div>
+        </aside>
       </div>
 
       {modalCliente && (

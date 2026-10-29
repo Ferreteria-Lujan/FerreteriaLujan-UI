@@ -98,10 +98,6 @@ export default function ModalNuevoCliente({ codigo, onCerrar, onGuardar }) {
         </div>
 
         <div className="mnc-cuerpo">
-          <div className="mnc-campo mnc-completo">
-            <label htmlFor="cli-codigo">Código</label>
-            <input id="cli-codigo" disabled placeholder={`${codigo} (auto)`} />
-          </div>
 
           {CAMPOS.map(({ id, label, placeholder, type, completo }) => {
             const error = intentado && errores[id]
