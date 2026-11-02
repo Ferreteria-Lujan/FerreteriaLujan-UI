@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { IconSearch } from '../../../components/Icons'
 import Paginacion from '../../../components/Paginacion'
 import InventarioShell from './InventarioShell'
@@ -16,6 +17,7 @@ const ESTADOS = ['Completada', 'Pendiente']
 const POR_PAGINA = 10
 
 export default function Transferencias() {
+  const navigate = useNavigate()
   const [busqueda, setBusqueda] = useState('')
   const [estado, setEstado] = useState('Todos')
   const [pagina, setPagina] = useState(1)   // TODO: pedir esta página al backend
@@ -34,6 +36,7 @@ export default function Transferencias() {
 
   return (
     <InventarioShell
+      accion={<button type="button" className="btn-agregar" onClick={() => navigate('/inventario/transferencias/nueva')}>+ Nueva Transferencia</button>}
       busqueda={busqueda} onBusqueda={(v) => { setBusqueda(v); setPagina(1) }}
       placeholder="Buscar por número o depósito..."
       estados={ESTADOS} estado={estado} onEstado={(v) => { setEstado(v); setPagina(1) }}>

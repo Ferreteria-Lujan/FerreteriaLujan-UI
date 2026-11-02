@@ -3,12 +3,13 @@ import { IconBox, IconDocument, IconSearch, IconChevronDown } from '../../../com
 
 // Estructura compartida de las listas de Inventario:
 // título, tarjetas de acción, búsqueda + filtro de estado, pestañas y la tabla (children)
-export default function InventarioShell({ busqueda, onBusqueda, placeholder, estados, estado, onEstado, children }) {
+export default function InventarioShell({ busqueda, onBusqueda, placeholder, estados, estado, onEstado, accion, children }) {
   return (
     <section className="ventas-page">
       <h1 className="ventas-titulo">Módulo de Inventario</h1>
 
       <div className="filtros">
+        {accion}
         <label className="campo-caja buscador">
           <IconSearch />
           <input type="search" placeholder={placeholder} aria-label="Buscar" value={busqueda}

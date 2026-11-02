@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { IconSearch, IconChevronDown } from '../../../components/Icons'
-import ModalNuevoCliente from './ModalNuevoCliente'
+import FormModal from '../../../components/FormModal'
+import { clienteModalConfig, vaciosANull } from '../../../components/formModalConfigs'
 // ---------- Datos de prueba (TODO: reemplazar por ms-ventas / ms-inventario) ----------
 // Tienen la forma de las tablas reales: depositos, productos, inventarios, clientes + personas.
 const DEPOSITOS = [
@@ -87,7 +88,8 @@ export default function VentaDirecta() {
     setCantidad(1)
   }
 
-  function guardarCliente(datos) {
+  function guardarCliente(form) {
+    const datos = vaciosANull(form)
     // TODO: POST a ms-ventas: crea la persona (nombre, ruc, telefono, correo, direccion) y el cliente.
     // 'ciudad' no existe en la tabla personas: definir dónde se guarda o quitar el campo del modal.
     const nuevo = {
@@ -240,12 +242,11 @@ export default function VentaDirecta() {
         </aside>
       </div>
 
-      {modalCliente && (
-        <ModalNuevoCliente
-          codigo={'CLT-' + String(Math.max(0, ...clientes.map((c) => c.id_cliente)) + 1).padStart(4, '0')}
-          onCerrar={() => setModalCliente(false)}
-          onGuardar={guardarCliente} />
-      )}
+      <FormModal
+        open={modalCliente}
+        {...clienteModalConfig}
+        onClose={() => setModalCliente(false)}
+        onSubmit={guardarCliente} />
     </section>
   )
 }
