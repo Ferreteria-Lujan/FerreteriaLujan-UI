@@ -42,6 +42,17 @@ export const clienteModalConfig = {
   ],
 }
 
+export const depositoModalConfig = {
+  title: 'Crear Depósito',
+  cancelLabel: 'Cancelar',
+  fields: [
+    { name: 'nombre', label: 'Nombre', placeholder: 'Depósito Este', required: true },
+    { name: 'ciudad', label: 'Ciudad', placeholder: 'Asunción', half: true },
+    { name: 'telefono', label: 'Teléfono', type: 'tel', placeholder: '021-000-0000', half: true },
+    { name: 'direccion', label: 'Dirección', type: 'textarea', rows: 2, placeholder: 'Dirección completa' },
+  ],
+}
+
 // Devuelve la config con un campo que no admite repetidos.
 //   existentes: registros ya cargados · obtener: (registro) => valor a comparar · ignorar: registro que se está editando
 export function campoUnico(config, name, existentes, obtener, mensaje, ignorar) {

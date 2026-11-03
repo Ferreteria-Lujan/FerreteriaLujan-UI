@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { IconPencil, IconSearch } from '../../../components/Icons'
+import { IconPencil } from '../../../components/Icons'
 import Paginacion from '../../../components/Paginacion'
 import FormModal from '../../../components/FormModal'
 import { productoModalConfig, campoUnico } from '../../../components/formModalConfigs'
@@ -84,7 +84,6 @@ export default function Productos() {
             <span className="c-fecha">{p.stock}</span>
             <span className={'c-estado ' + (p.estado === 'En stock' ? 'estado-pagado' : 'estado-pendiente')}>{p.estado}</span>
             <div className="acciones-fila">
-              <button className="btn-ver" aria-label={`Ver ${p.codigo}`}><IconSearch /></button>
               <button className="btn-ver" aria-label={`Editar ${p.codigo}`} onClick={() => setModal({ producto: p })}><IconPencil /></button>
             </div>
           </div>

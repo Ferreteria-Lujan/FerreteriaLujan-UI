@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { IconSearch, IconChevronDown } from '../../../components/Icons'
+import FormModal from '../../../components/FormModal'
+import { depositoModalConfig, campoUnico, vaciosANull } from '../../../components/formModalConfigs'
 import { DEPOSITOS, PRODUCTOS, gs } from './datos'
 
 const etiqueta = (p) => `${p.codigo} · ${p.nombre}`
@@ -10,14 +12,18 @@ export default function NuevaTransferencia() {
   const [origen, setOrigen] = useState('')
   const [destino, setDestino] = useState('')
   const [busqueda, setBusqueda] = useState('')
-  const [deposito, setDeposito] = useState(DEPOSITOS[0])
+  const [depositos, setDepositos] = useState(DEPOSITOS)   // TODO: cargar desde ms-inventario
+  const [modalDeposito, setModalDeposito] = useState(false)
   const [cantidad, setCantidad] = useState(1)
   const [items, setItems] = useState([])
 
   const producto = PRODUCTOS.find((p) =>
     etiqueta(p) === busqueda || p.codigo.toLowerCase() === busqueda.trim().toLowerCase())
   const mismoDeposito = origen !== '' && origen === destino
-  const depositosOk = DEPOSITOS.includes(origen) && DEPOSITOS.includes(destino) && !mismoDeposito
+  const origenOk = depositos.includes(origen)
+  const depositosOk = origenOk && depositos.includes(destino) && !mismoDeposito
+  // El producto sale del depósito de origen: se completa solo y no se edita acá
+  const deposito = origenOk ? origen : ''
   const total = items.reduce((s, i) => s + i.precio * i.cantidad, 0)
 
   function agregar() {
@@ -27,6 +33,13 @@ export default function NuevaTransferencia() {
       : [...prev, { codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, cantidad }])
     setBusqueda('')
     setCantidad(1)
+  }
+
+  async function crearDeposito(form) {
+    // TODO: POST a ms-inventario
+    const { nombre } = vaciosANull(form)
+    setDepositos((prev) => [...prev, nombre])
+    setModalDeposito(false)
   }
 
   function confirmar() {
@@ -42,7 +55,7 @@ export default function NuevaTransferencia() {
         {/* 1. Depósitos */}
         <div className="panel-form">
           <div className="panel-titulo">Seleccionar Depósitos</div>
-          <div className="panel-cuerpo fila-campos">
+          <div className="panel-cuerpo fila-campos abajo">
             <div className="campo grande">
               <label htmlFor="origen">Depósito Origen *</label>
               <div className="campo-caja"><IconSearch />
@@ -57,7 +70,8 @@ export default function NuevaTransferencia() {
                        value={destino} onChange={(e) => setDestino(e.target.value)} />
               </div>
             </div>
-            <datalist id="lista-depositos">{DEPOSITOS.map((d) => <option key={d} value={d} />)}</datalist>
+            <button type="button" className="btn-agregar" onClick={() => setModalDeposito(true)}>+ Crear depósito</button>
+            <datalist id="lista-depositos">{depositos.map((d) => <option key={d} value={d} />)}</datalist>
           </div>
           {mismoDeposito && <p className="campo-error">El origen y el destino deben ser distintos</p>}
         </div>
@@ -78,8 +92,8 @@ export default function NuevaTransferencia() {
             <div className="campo" style={{ width: 170 }}>
               <label htmlFor="deposito">Depósito</label>
               <div className="campo-caja select-caja">
-                <select id="deposito" value={deposito} onChange={(e) => setDeposito(e.target.value)}>
-                  {DEPOSITOS.map((d) => <option key={d} value={d}>{d}</option>)}
+                <select id="deposito" value={deposito} disabled>
+                  {deposito === '' ? <option value="">Elegí el depósito origen</option> : <option value={deposito}>{deposito}</option>}
                 </select>
                 <IconChevronDown />
               </div>
@@ -95,7 +109,7 @@ export default function NuevaTransferencia() {
               </div>
             </div>
 
-            <button type="button" className="btn-agregar" disabled={!producto} onClick={agregar}>+ Agregar</button>
+            <button type="button" className="btn-agregar" disabled={!producto || !origenOk} onClick={agregar}>+ Agregar</button>
           </div>
         </div>
 
@@ -129,6 +143,12 @@ export default function NuevaTransferencia() {
           )}
         </div>
       </div>
+
+      <FormModal
+        open={modalDeposito}
+        {...campoUnico(depositoModalConfig, 'nombre', depositos, (d) => d, 'Ya existe un depósito con ese nombre')}
+        onClose={() => setModalDeposito(false)}
+        onSubmit={crearDeposito} />
     </section>
   )
 }
