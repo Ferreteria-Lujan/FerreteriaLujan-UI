@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import logo from '../assets/logo.png'
+import logo from '../assets/logo.svg'
 import BackButton from './BackButton'
 import NavPrincipal from './NavPrincipal'
 
@@ -20,7 +20,7 @@ export default function Layout() {
       </header>
       <main className="app-content">
         {showBack && <BackButton />}
-        <Outlet />   {/* aquí se dibuja la pantalla de la ruta actual */}
+        <Outlet />
       </main>
     </>
   )

@@ -14,7 +14,7 @@ import Productos from './pages/modulos/inventario/Productos'
 import Transferencias from './pages/modulos/inventario/Transferencias'
 import NuevaTransferencia from './pages/modulos/inventario/NuevaTransferencia'
 import Reportes from './pages/modulos/Reportes'
-import { isLoggedIn } from './api/auth'
+import { isLoggedIn } from './gateway/session'
 
 // Rutas protegidas: sin sesión iniciada, siempre se vuelve al login
 function RequireAuth() {
@@ -22,7 +22,7 @@ function RequireAuth() {
   return <Outlet />
 }
 
-// /login solo para quien NO tiene sesión (se evalúa en cada render, no una sola vez)
+// /login solo para quien NO tiene sesión (se evalúa en cada render)
 function SoloInvitado() {
   if (isLoggedIn()) return <Navigate to="/" replace />
   return <Login />

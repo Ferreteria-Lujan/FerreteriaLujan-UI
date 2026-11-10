@@ -1,21 +1,25 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { login } from '../api/auth'
+import { iniciarSesion } from '../services/seguridadService'
 
 export default function Login() {
   const navigate = useNavigate()
   const [usuario, setUsuario] = useState('')
   const [contrasena, setContrasena] = useState('')
   const [error, setError] = useState('')
+  const [enviando, setEnviando] = useState(false)
 
   async function handleSubmit(e) {
-    e.preventDefault()               // evita que el formulario recargue la página
+    e.preventDefault()
     setError('')
+    setEnviando(true)
     try {
-      await login(usuario, contrasena)
+      await iniciarSesion(usuario, contrasena)
       navigate('/')
     } catch (err) {
-      setError(err.userMessage)
+      setError(err.userMessage || 'No se pudo iniciar sesión')
+    } finally {
+      setEnviando(false)
     }
   }
 
@@ -35,7 +39,9 @@ export default function Login() {
                onChange={(e) => setContrasena(e.target.value)} autoComplete="current-password" required />
         {error && <p className="badge-danger">{error}</p>}
       </div>
-      <button className="btn btn-primary" type="submit">Iniciar sesion</button>
+      <button className="btn btn-primary" type="submit" disabled={enviando}>
+        {enviando ? 'Ingresando...' : 'Iniciar sesion'}
+      </button>
     </form>
   )
 }

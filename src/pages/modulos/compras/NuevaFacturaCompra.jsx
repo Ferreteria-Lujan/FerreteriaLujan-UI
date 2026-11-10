@@ -1,42 +1,45 @@
-import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import FacturaForm from '../../../components/factura/FacturaForm'
 import { FACTURA_COMPRA } from '../../../components/factura/facturaConfig'
 import useCargar from '../../../hooks/useCargar'
-import { crearFacturaCompra, crearProveedor, listarProveedores } from '../../../api/compras'
-import { listarProductos } from '../../../api/inventario'
+import { proveedores, registrarFacturaCompra } from '../../../services/comprasService'
+import { productos } from '../../../services/inventarioService'
 
-// Nueva factura de compra: el formulario es el componente compartido con Ventas.
-// Esta página solo trae los catálogos (proveedores, productos) y guarda en ms-compras.
+// Los catálogos llegan del gateway ya convertidos a la forma que usa FacturaForm.
+async function cargarTerceros() {
+  const lista = await proveedores.listar({ sort: 'nombre,asc' })
+  return lista.map((p) => ({ id: p.id, etiqueta: p.etiqueta, claves: [p.ruc].filter(Boolean) }))
+}
+
+async function cargarProductosCompra() {
+  const lista = await productos.listar({ sort: 'nombre,asc' })
+  // En una compra el precio de lista es el costo
+  return lista.map((p) => ({ id: p.id, codigo: p.codigo, nombre: p.nombre, precio: p.precioCompra }))
+}
+
 export default function NuevaFacturaCompra() {
   const navigate = useNavigate()
-  const proveedores = useCargar(listarProveedores)
-  const productos = useCargar(listarProductos)
-
-  // En una compra el precio de lista es el precio de compra (el costo)
-  const productosCompra = useMemo(
-    () => productos.datos.map((p) => ({ id: p.id, codigo: p.codigo, nombre: p.nombre, precio: p.precioCompra })),
-    [productos.datos],
-  )
+  const terceros = useCargar(cargarTerceros)
+  const catalogo = useCargar(cargarProductosCompra)
 
   async function nuevoProveedor(datos) {
-    const creado = await crearProveedor(datos)
-    proveedores.recargar()   // la lista incluye al nuevo
-    return creado
+    const creado = await proveedores.crear(datos)   // lanza con userMessage si el RUC ya existe
+    terceros.recargar()
+    return { id: creado.id, etiqueta: creado.etiqueta }
   }
 
   async function confirmar(datos) {
-    await crearFacturaCompra(datos)
+    await registrarFacturaCompra(datos)
     navigate(FACTURA_COMPRA.rutaAlGuardar)
   }
 
   return (
     <FacturaForm
       config={FACTURA_COMPRA}
-      terceros={proveedores.datos}
-      productos={productosCompra}
-      cargando={proveedores.cargando || productos.cargando}
-      error={proveedores.error || productos.error}
+      terceros={terceros.datos}
+      productos={catalogo.datos}
+      cargando={terceros.cargando || catalogo.cargando}
+      error={terceros.error || catalogo.error}
       onNuevoTercero={nuevoProveedor}
       onConfirmar={confirmar} />
   )

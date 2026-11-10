@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { logout } from '../api/auth'
+import { cerrarSesion } from '../gateway/session'
 
 export default function Main() {
   const navigate = useNavigate()
@@ -12,7 +12,7 @@ export default function Main() {
       </div>
       <div className="menu-row">
         <button className="btn" onClick={() => navigate('/reportes')}>Reportes</button>
-        <button className="btn" onClick={() => { logout(); navigate('/login') }}>Salir</button>
+        <button className="btn" onClick={() => { cerrarSesion(); navigate('/login') }}>Salir</button>
       </div>
     </section>
   )
