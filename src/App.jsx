@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import Main from './pages/Main'
 import Pedidos from './pages/modulos/compras/Pedidos'
 import FacturasCompras from './pages/modulos/compras/FacturasCompras'
+import NuevaFacturaCompra from './pages/modulos/compras/NuevaFacturaCompra'
 import Proveedores from './pages/modulos/compras/Proveedores'
 import VentasHome from './pages/modulos/ventas/VentasHome'
 import VentaDirecta from './pages/modulos/ventas/VentaDirecta'
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/compras" element={<Navigate to="/compras/pedidos" replace />} />
           <Route path="/compras/pedidos" element={<Pedidos />} />
           <Route path="/compras/facturas" element={<FacturasCompras />} />
+          <Route path="/compras/facturas/nueva" element={<NuevaFacturaCompra />} />
           <Route path="/compras/proveedores" element={<Proveedores />} />
           <Route path="/ventas" element={<VentasHome />} />
           <Route path="/ventas/venta-directa" element={<VentaDirecta />} />

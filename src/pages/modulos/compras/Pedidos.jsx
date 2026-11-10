@@ -3,7 +3,7 @@ import {
   IconPlusCircle, IconSearch, IconChevronDown, IconChevronLeft, IconChevronRight,
 } from '../../../components/Icons'
 
-// TODO: reemplazar por los datos del backend (ms-compras)
+// TODO: ms-compras todavía no tiene pedidos (no hay entidad Pedido en commons ni controller): se mantiene con datos de prueba.
 const PEDIDOS = [
   { nro: 'PED-2026-0041', proveedor: 'Distribuidora Acero Total', fecha: '2026-07-19', total: 1385000, pagado: false, estado: 'En proceso' },
   { nro: 'PED-2026-0040', proveedor: 'Ferrecon S.A.',             fecha: '2026-07-18', total: 450000,  pagado: true,  estado: 'Recibido' },

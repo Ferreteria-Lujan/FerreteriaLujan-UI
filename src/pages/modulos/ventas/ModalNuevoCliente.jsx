@@ -54,11 +54,14 @@ const ESTILOS = `
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// Modal "Nuevo Cliente". `codigo` es solo informativo (lo asigna el backend).
+// Modal "Nuevo Cliente" (también se usa para "Nuevo Proveedor": cambia `titulo`).
 // Al guardar llama onGuardar({ nombre, ruc, telefono, correo, ciudad, direccion }); los vacíos van como null.
-export default function ModalNuevoCliente({ codigo, onCerrar, onGuardar }) {
+// onGuardar puede ser async: si lanza, el modal queda abierto y muestra el mensaje del servidor.
+export default function ModalNuevoCliente({ titulo = 'Nuevo Cliente', ocultar = [], onCerrar, onGuardar }) {
   const [form, setForm] = useState({ nombre: '', ruc: '', telefono: '', correo: '', ciudad: '', direccion: '' })
   const [intentado, setIntentado] = useState(false)
+  const [guardando, setGuardando] = useState(false)
+  const [errorServidor, setErrorServidor] = useState(null)
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onCerrar() }
@@ -78,12 +81,19 @@ export default function ModalNuevoCliente({ codigo, onCerrar, onGuardar }) {
   }
   const hayErrores = Object.values(errores).some(Boolean)
 
-  function enviar(e) {
+  async function enviar(e) {
     e.preventDefault()
     setIntentado(true)
-    if (hayErrores) return
+    if (hayErrores || guardando) return
     const limpio = Object.fromEntries(Object.entries(form).map(([k, v]) => [k, v.trim() || null]))
-    onGuardar(limpio)
+    setErrorServidor(null)
+    setGuardando(true)
+    try {
+      await onGuardar(limpio)
+    } catch (err) {
+      setErrorServidor(err.userMessage || err.message || 'No se pudo guardar')
+      setGuardando(false)
+    }
   }
 
   // Portal: se dibuja sobre el <body>, por encima de toda la pantalla actual
@@ -93,13 +103,13 @@ export default function ModalNuevoCliente({ codigo, onCerrar, onGuardar }) {
       <form className="mnc-modal" role="dialog" aria-modal="true" aria-labelledby="modal-cliente-titulo"
             noValidate onSubmit={enviar}>
         <div className="mnc-cabecera">
-          <h2 id="modal-cliente-titulo">Nuevo Cliente</h2>
+          <h2 id="modal-cliente-titulo">{titulo}</h2>
           <button type="button" className="mnc-cerrar" aria-label="Cerrar" onClick={onCerrar}>×</button>
         </div>
 
         <div className="mnc-cuerpo">
 
-          {CAMPOS.map(({ id, label, placeholder, type, completo }) => {
+          {CAMPOS.filter((c) => !ocultar.includes(c.id)).map(({ id, label, placeholder, type, completo }) => {
             const error = intentado && errores[id]
             return (
               <div className={'mnc-campo' + (completo ? ' mnc-completo' : '')} key={id}>
@@ -112,9 +122,11 @@ export default function ModalNuevoCliente({ codigo, onCerrar, onGuardar }) {
             )
           })}
 
+          {errorServidor && <span className="mnc-error mnc-completo" role="alert">{errorServidor}</span>}
+
           <div className="mnc-acciones">
             <button type="button" className="mnc-cancelar" onClick={onCerrar}>Cancelar</button>
-            <button type="submit" className="mnc-guardar">Guardar</button>
+            <button type="submit" className="mnc-guardar" disabled={guardando}>{guardando ? 'Guardando...' : 'Guardar'}</button>
           </div>
         </div>
       </form>

@@ -1,7 +1,6 @@
-import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { IconSearch, IconChevronDown } from '../../../components/Icons'
-import Paginacion from '../../../components/Paginacion'
+import { useMemo } from 'react'
+import FacturaLista from '../../../components/factura/FacturaLista'
+import { FACTURA_VENTA } from '../../../components/factura/facturaConfig'
 
 // TODO: reemplazar por los datos del backend (ms-ventas).
 // Forma de facturas_ventas + cliente (clientes -> personas) + estado (estados.nombre).
@@ -19,78 +18,13 @@ const FACTURAS = [
   { id_factura: 2,  nro_factura: 'FAC-000002', cliente: 'Consumidor Final',       fecha_emision: '2026-08-08', fecha_vencimiento: '2026-09-08', importe_total: 150000,  estado: 'Pagada' },
   { id_factura: 1,  nro_factura: 'FAC-000001', cliente: 'Obras Civiles SA',       fecha_emision: '2026-08-05', fecha_vencimiento: '2026-09-04', importe_total: 4300000, estado: 'Pagada' },
 ]
-const ESTADOS = ['Pagada', 'Pendiente', 'Vencida']
-const ESTADO_CLASE = { Pagada: 'estado-pagado', Pendiente: 'estado-pendiente', Vencida: 'estado-vencida' }
-const POR_PAGINA = 10
 
-const gs = (n) => n.toLocaleString('es-PY') + ' Gs.'
-const fechaCorta = (iso) => iso.split('-').reverse().join('/')   // 2026-08-20 -> 20/08/2026
-
+// Facturas de venta: la lista es el componente compartido con Compras; acá solo se le da la config y los datos.
 export default function Facturas() {
-  const navigate = useNavigate()
-  const [busqueda, setBusqueda] = useState('')
-  const [estado, setEstado] = useState('Todos')
-  const [pagina, setPagina] = useState(1)   // TODO: pedir esta página al backend
-
-  const filtradas = useMemo(() => {
-    const q = busqueda.trim().toLowerCase()
-    return FACTURAS.filter((f) =>
-      (estado === 'Todos' || f.estado === estado) &&
-      (!q || f.nro_factura.toLowerCase().includes(q) || f.cliente.toLowerCase().includes(q)))
-  }, [busqueda, estado])
-
-  const totalPaginas = Math.max(1, Math.ceil(filtradas.length / POR_PAGINA))
-  const actual = Math.min(pagina, totalPaginas)
-  const inicio = (actual - 1) * POR_PAGINA
-  const visibles = filtradas.slice(inicio, inicio + POR_PAGINA)
-
-  return (
-    <section className="ventas-page">
-      <h1 className="ventas-titulo">Facturas</h1>
-
-      <div className="filtros">
-        <button type="button" className="btn-agregar" onClick={() => navigate('/ventas/venta-directa')}>
-          + Nueva Venta
-        </button>
-        <label className="campo-caja buscador">
-          <IconSearch />
-          <input type="search" placeholder="Buscar por número o cliente..." aria-label="Buscar facturas"
-                 value={busqueda} onChange={(e) => { setBusqueda(e.target.value); setPagina(1) }} />
-        </label>
-        <label className="filtro-estado">
-          Estado:
-          <select value={estado} onChange={(e) => { setEstado(e.target.value); setPagina(1) }}>
-            <option value="Todos">Todos</option>
-            {ESTADOS.map((e) => <option key={e} value={e}>{e}</option>)}
-          </select>
-          <IconChevronDown />
-        </label>
-      </div>
-
-      <div className="tabla-ventas tabla-facturas">
-        <div className="fila cabecera">
-          <span>#</span><span>Nro. Factura</span><span>Cliente</span><span>Fecha</span>
-          <span>Vencimiento</span><span>Total</span><span>Estado</span><span />
-        </div>
-
-        {visibles.map((f, i) => (
-          <div className="fila fila-dato" key={f.id_factura}>
-            <span className="c-num">{String(inicio + i + 1).padStart(2, '0')}</span>
-            <span className="c-nro">{f.nro_factura}</span>
-            <span>{f.cliente}</span>
-            <span className="c-fecha">{fechaCorta(f.fecha_emision)}</span>
-            <span className="c-fecha">{fechaCorta(f.fecha_vencimiento)}</span>
-            <span className="c-total">{gs(f.importe_total)}</span>
-            <span className={'c-estado ' + ESTADO_CLASE[f.estado]}>{f.estado}</span>
-            {/* TODO: ver el detalle de la factura */}
-            <button className="btn-ver" aria-label={`Ver ${f.nro_factura}`}><IconSearch /></button>
-          </div>
-        ))}
-        {visibles.length === 0 && <p className="sin-resultados">No se encontraron facturas</p>}
-
-        <div className="espacio" />
-        <Paginacion pagina={actual} totalPaginas={totalPaginas} onCambiar={setPagina} />
-      </div>
-    </section>
-  )
+  // Misma forma que usa FacturaLista: { id, nro, tercero, fechaEmision, fechaVencimiento, total, estado }
+  const facturas = useMemo(() => FACTURAS.map((f) => ({   // TODO: cuando ms-ventas esté listo, esto sale de api/ventas.js
+    id: f.id_factura, nro: f.nro_factura, tercero: f.cliente, fechaEmision: f.fecha_emision,
+    fechaVencimiento: f.fecha_vencimiento, total: f.importe_total, estado: f.estado,
+  })), [])
+  return <FacturaLista config={FACTURA_VENTA} facturas={facturas} />
 }
