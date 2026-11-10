@@ -16,6 +16,12 @@ export const IconDocument = () => (
     <path d="M7 3h7l4 4v14H7z" /><path d="M14 3v4h4" /><path d="M10 12h5M10 16h5" />
   </svg>
 )
+export const IconPencil = () => (
+  <svg {...base}><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 013 3L8 19z" /><path d="M14.5 6.5l3 3" /></svg>
+)
+export const IconEye = () => (
+  <svg {...base}><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>
+)
 export const IconSearch = () => (
   <svg {...base}><circle cx="11" cy="11" r="6.5" /><path d="M16 16l5 5" /></svg>
 )

@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import FacturaForm from '../../../components/factura/FacturaForm'
-import { FACTURA_VENTA } from '../../../components/factura/facturaConfig'
-
+import { IconSearch, IconChevronDown } from '../../../components/Icons'
+import ModalNuevoCliente from './ModalNuevoCliente'
 // ---------- Datos de prueba (TODO: reemplazar por ms-ventas / ms-inventario) ----------
 // Tienen la forma de las tablas reales: depositos, productos, inventarios, clientes + personas.
 const DEPOSITOS = [
@@ -58,7 +57,8 @@ export default function VentaDirecta() {
     () => PRODUCTOS.map((p) => ({ id: p.id_producto, codigo: p.codigo, nombre: p.nombre, precio: p.precio_venta })), [])
   const depositos = useMemo(() => DEPOSITOS.map((d) => ({ id: d.id_deposito, nombre: d.nombre })), [])
 
-  function guardarCliente(datos) {
+  function guardarCliente(form) {
+    const datos = vaciosANull(form)
     // TODO: POST a ms-ventas: crea la persona (nombre, ruc, telefono, correo, direccion) y el cliente.
     // 'ciudad' no existe en la tabla personas: definir dónde se guarda o quitar el campo del modal.
     const nuevo = {
@@ -88,13 +88,134 @@ export default function VentaDirecta() {
   }
 
   return (
-    <FacturaForm
-      config={FACTURA_VENTA}
-      terceros={terceros}
-      productos={productos}
-      depositos={depositos}
-      stockDe={stockDe}
-      onNuevoTercero={guardarCliente}
-      onConfirmar={confirmar} />
+    <section className="ventas-page">
+      <h1 className="ventas-titulo">Nueva Venta Directa</h1>
+
+      <div className="venta-grid">
+        {/* Columna izquierda */}
+        <div className="form-paneles">
+          {/* 1. Cliente */}
+          <div className="panel-form">
+            <div className="panel-titulo">Seleccionar Cliente</div>
+            <div className="panel-cuerpo fila-campos abajo">
+              <div className="campo crece">
+                <label htmlFor="cliente">Cliente *</label>
+                <div className="campo-caja"><IconSearch />
+                  <input id="cliente" list="lista-clientes" placeholder="Buscar cliente por nombre o RUC..."
+                         value={busquedaCliente} onChange={(e) => setBusquedaCliente(e.target.value)} />
+                </div>
+                <datalist id="lista-clientes">
+                  {clientes.map((c) => <option key={c.id_cliente} value={etiquetaCliente(c)} />)}
+                </datalist>
+              </div>
+              <button type="button" className="btn-agregar" onClick={() => setModalCliente(true)}>+ Nuevo Cliente</button>
+            </div>
+          </div>
+
+          {/* 2. Agregar producto */}
+          <div className="panel-form">
+            <div className="panel-titulo">Agregar Producto</div>
+            <div className="panel-cuerpo fila-campos abajo">
+              <div className="campo crece">
+                <label htmlFor="producto">Buscar producto</label>
+                <div className="campo-caja"><IconSearch />
+                  <input id="producto" list="lista-productos" placeholder="Buscar por nombre o código..."
+                         value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+                </div>
+                <datalist id="lista-productos">
+                  {PRODUCTOS.map((p) => <option key={p.id_producto} value={etiquetaProducto(p)} />)}
+                </datalist>
+              </div>
+
+              <div className="campo" style={{ width: 170 }}>
+                <label htmlFor="deposito">Depósito</label>
+                <div className="campo-caja select-caja">
+                  {/* Con productos cargados el depósito queda fijo: una venta descuenta de un solo depósito */}
+                  <select id="deposito" value={deposito.id_deposito} disabled={items.length > 0}
+                          onChange={(e) => setDeposito(DEPOSITOS.find((d) => d.id_deposito === Number(e.target.value)))}>
+                    {DEPOSITOS.map((d) => <option key={d.id_deposito} value={d.id_deposito}>{d.nombre}</option>)}
+                  </select>
+                  <IconChevronDown />
+                </div>
+              </div>
+
+              <div className="campo" style={{ width: 130 }}>
+                <label htmlFor="cantidad">Cantidad</label>
+                <div className="stepper">
+                  <button type="button" aria-label="Menos" onClick={() => setCantidad((c) => Math.max(1, c - 1))}>−</button>
+                  <input id="cantidad" type="number" min="1" value={cantidad}
+                         onChange={(e) => setCantidad(Math.max(1, parseInt(e.target.value, 10) || 1))} />
+                  <button type="button" aria-label="Más" className="mas" onClick={() => setCantidad((c) => c + 1)}>+</button>
+                </div>
+              </div>
+
+              <button type="button" className="btn-agregar" disabled={!producto || sinStock} onClick={agregar}>
+                + Agregar
+              </button>
+            </div>
+            {sinStock && (
+              <p className="campo-error">Stock insuficiente en {deposito.nombre} (disponible: {disponible})</p>
+            )}
+          </div>
+
+          {/* 3. Productos de la venta */}
+          <div className="panel-form crece">
+            <div className="panel-titulo">Productos en la Venta</div>
+            <div className="items-cabecera">
+              <span>Código</span><span>Producto</span><span>Cant.</span><span>Precio Unit.</span><span>Subtotal</span><span />
+            </div>
+            <div className="panel-cuerpo items-cuerpo">
+              {items.length === 0 && <p className="items-vacio">No hay productos seleccionados...</p>}
+              {items.map((i) => (
+                <div className="items-fila" key={i.id_producto}>
+                  <span className="c-nro">{i.codigo}</span>
+                  <span>{i.nombre}</span>
+                  <span>{i.cantidad}</span>
+                  <span>{gs(i.precio_unitario)}</span>
+                  <span className="c-total">{gs(i.precio_unitario * i.cantidad)}</span>
+                  <button type="button" className="btn-quitar" aria-label={`Quitar ${i.nombre}`}
+                          onClick={() => setItems((prev) => prev.filter((x) => x.id_producto !== i.id_producto))}>×</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Columna derecha */}
+        <aside className="venta-lateral">
+          <div className="panel-form">
+            <div className="panel-titulo">Resumen</div>
+            <div className="panel-cuerpo resumen">
+              <div className="resumen-fila"><span>Fecha:</span><strong>{hoy()}</strong></div>
+              <div className="resumen-fila"><span>Subtotal:</span><strong>{gs(subtotal)}</strong></div>
+              <div className="resumen-fila"><span>IVA (10%):</span><strong>{gs(iva)}</strong></div>
+              <div className="resumen-fila total"><span>Total:</span><strong>{gs(total)}</strong></div>
+            </div>
+            <div className="resumen-pie">
+              <button type="button" className="btn-agregar btn-confirmar"
+                      disabled={!cliente || items.length === 0} onClick={confirmar}>
+                Confirmar Venta
+              </button>
+            </div>
+          </div>
+
+          <div className="panel-form">
+            <div className="panel-titulo">Depósito Seleccionado</div>
+            <div className="panel-cuerpo deposito-info">
+              <span>{deposito.nombre}</span>
+              <small>Stock disponible para descuento</small>
+              {producto && <small>{producto.codigo}: {disponible} unidades</small>}
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      {modalCliente && (
+        <ModalNuevoCliente
+          codigo={'CLT-' + String(Math.max(0, ...clientes.map((c) => c.id_cliente)) + 1).padStart(4, '0')}
+          onCerrar={() => setModalCliente(false)}
+          onGuardar={guardarCliente} />
+      )}
+    </section>
   )
 }
