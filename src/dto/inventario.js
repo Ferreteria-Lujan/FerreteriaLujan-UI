@@ -1,4 +1,4 @@
-// DTOs de ms-inventario (commons): ProductoDTO, DepositoDTO.
+// DTOs de ms-inventario (commons): ProductoDTO, DepositoDTO, InventarioDTO.
 export const fromProductoDTO = (p) => ({
   id: p.idProducto,
   codigo: p.codigo ?? '',
@@ -13,4 +13,12 @@ export const fromProductoDTO = (p) => ({
 export const fromDepositoDTO = (d) => ({
   id: d.idDeposito,
   nombre: d.nombre ?? '',
+})
+
+// Stock de un producto en un deposito
+export const fromInventarioDTO = (i) => ({
+  id: i.id ?? null,
+  idDeposito: i.idDeposito,
+  idProducto: i.idProducto,
+  cantidad: Number(i.cantidad ?? 0),
 })

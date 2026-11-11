@@ -1,5 +1,5 @@
 // Rutas de la API. Son las URL que el API Gateway expone (ver api-gateway/application.yml).
-// La UI nunca arma URLs a microservicios: todo sale de acá, relativo a /api del gateway.
+// La UI nunca arma URLs a microservicios: todo sale de aca, relativo a /api del gateway.
 export const RUTAS = {
   auth: {
     login: '/auth/login',
@@ -22,6 +22,7 @@ export const RUTAS = {
   },
   ventas: {
     clientes: '/clientes',
+    estados: '/estados',
     presupuestos: '/presupuestos',
     presupuestosDetalle: '/presupuestos-detalle',
     facturas: '/facturas-ventas',

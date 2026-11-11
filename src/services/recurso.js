@@ -2,14 +2,21 @@ import { gateway } from '../gateway/client'
 import { leerPagina, PAGINA_MAX } from '../dto/page'
 
 /*
- * CRUD genérico sobre un recurso del API Gateway.
+ * CRUD generico sobre un recurso del API Gateway.
  *   desde(dtoBackend) -> modelo de la UI   (respuestas)
- *   hacia(modeloUI)   -> dtoBackend        (envíos)
+ *   hacia(modeloUI)   -> dtoBackend        (envios)
  */
 export function recurso(ruta, { desde = (x) => x, hacia = (x) => x } = {}) {
   return {
     async listar(params = {}) {
       const { data } = await gateway.get(ruta, { params: { size: PAGINA_MAX, ...params } })
+      return leerPagina(data).content.map(desde)
+    },
+    // Busqueda con filtro en el body (POST /search, como en ms-ventas)
+    async buscar(filtro = {}, params = {}) {
+      const { data } = await gateway.post(`${ruta}/search`, filtro, {
+        params: { size: PAGINA_MAX, ...params },
+      })
       return leerPagina(data).content.map(desde)
     },
     async obtener(id) {
