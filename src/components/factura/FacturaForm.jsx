@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { IconSearch, IconChevronDown } from '../Icons'
+import BuscadorSugerencias from '../BuscadorSugerencias'
 import ModalNuevoCliente from '../../pages/modulos/ventas/ModalNuevoCliente'
 import { gs, hoyISO, hoyLargo } from './facturaConfig'
 
@@ -126,6 +127,9 @@ export default function FacturaForm({
     }
   }
 
+  const opcionesTerceros = terceros.map((x) => ({ key: x.id, label: x.etiqueta }))
+  const opcionesProductos = productos.map((p) => ({ key: p.id, label: etiquetaProducto(p) }))
+
   return (
     <section className="ventas-page">
       <h1 className="ventas-titulo">{config.titulo}</h1>
@@ -142,14 +146,14 @@ export default function FacturaForm({
               <div className="fila-campos abajo">
                 <div className="campo crece">
                   <label htmlFor="tercero">{t.label}</label>
-                  <div className="campo-caja"><IconSearch />
-                    <input id="tercero" list="lista-terceros" placeholder={t.placeholder}
-                           disabled={cargando} value={busquedaTercero}
-                           onChange={(e) => setBusquedaTercero(e.target.value)} />
-                  </div>
-                  <datalist id="lista-terceros">
-                    {terceros.map((x) => <option key={x.id} value={x.etiqueta} />)}
-                  </datalist>
+                  <BuscadorSugerencias
+                    id="tercero"
+                    value={busquedaTercero}
+                    onChange={setBusquedaTercero}
+                    opciones={opcionesTerceros}
+                    placeholder={t.placeholder}
+                    disabled={cargando}
+                    icono={<IconSearch />} />
                 </div>
                 {onNuevoTercero && (
                   <button type="button" className="btn-agregar" onClick={() => setModal(true)}>{t.botonNuevo}</button>
@@ -210,14 +214,14 @@ export default function FacturaForm({
             <div className="panel-cuerpo fila-campos abajo">
               <div className="campo crece">
                 <label htmlFor="producto">Buscar producto</label>
-                <div className="campo-caja"><IconSearch />
-                  <input id="producto" list="lista-productos" placeholder="Buscar por nombre o código..."
-                         disabled={cargando} value={busqueda}
-                         onChange={(e) => { setBusqueda(e.target.value); setPrecioManual(null) }} />
-                </div>
-                <datalist id="lista-productos">
-                  {productos.map((p) => <option key={p.id} value={etiquetaProducto(p)} />)}
-                </datalist>
+                <BuscadorSugerencias
+                  id="producto"
+                  value={busqueda}
+                  onChange={(v) => { setBusqueda(v); setPrecioManual(null) }}
+                  opciones={opcionesProductos}
+                  placeholder="Buscar por nombre o código..."
+                  disabled={cargando}
+                  icono={<IconSearch />} />
               </div>
 
               {config.deposito && (
