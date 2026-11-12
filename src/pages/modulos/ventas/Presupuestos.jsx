@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react'
-import { IconSearch } from '../../../components/Icons'
+import { createPortal } from 'react-dom'
+import { IconPencil, IconSearch } from '../../../components/Icons'
 import Paginacion from '../../../components/Paginacion'
 import { fechaCorta, gs } from '../../../components/factura/facturaConfig'
 import useCargar from '../../../hooks/useCargar'
 import { productos } from '../../../services/inventarioService'
 import {
-  crearPresupuesto, listarPresupuestos, listarTerceros,
+  actualizarPresupuesto, crearPresupuesto, generarFacturaDesdePresupuesto,
+  listarPresupuestos, listarTerceros, obtenerPresupuestoParaEditar,
 } from '../../../services/ventasService'
 import ModalNuevoPresupuesto from './ModalNuevoPresupuesto.jsx'
 
@@ -28,9 +30,49 @@ async function cargarPantalla() {
   }
 }
 
+// Carga el presupuesto y abre el modal de edición con sus datos
+function ModalEditarPresupuesto({ id, nro, clientes, productos, onCerrar, onActualizado }) {
+  const { datos, cargando, error } = useCargar(() => obtenerPresupuestoParaEditar(id), null)
+
+  if (!datos) {
+    return createPortal(
+      <div className="fm-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onCerrar() }}>
+        <div className="fm-modal" style={{ maxWidth: 360 }}>
+          <div className="fm-body">
+            {error
+              ? <p className="aviso-error" role="alert">{error}</p>
+              : cargando && <p className="sin-resultados">Cargando presupuesto...</p>}
+            <button type="button" className="fm-btn fm-btn--secondary" onClick={onCerrar}>Cerrar</button>
+          </div>
+        </div>
+      </div>,
+      document.body,
+    )
+  }
+
+  return (
+    <ModalNuevoPresupuesto
+      titulo={`Presupuesto — ${nro}`}
+      inicial={datos}
+      puedeGenerarFactura={datos.nombreEstado !== 'Convertido'}
+      clientes={clientes}
+      productos={productos}
+      onCerrar={onCerrar}
+      onGuardar={async (payload) => {
+        await actualizarPresupuesto(id, payload)
+        onActualizado()
+      }}
+      onGenerarFactura={async () => {
+        await generarFacturaDesdePresupuesto(id)
+        onActualizado()
+      }} />
+  )
+}
+
 export default function Presupuestos() {
   const { datos, cargando, error, recargar } = useCargar(cargarPantalla, null)
   const [modalAbierto, setModalAbierto] = useState(false)
+  const [editandoId, setEditandoId] = useState(null)
   const [busqueda, setBusqueda] = useState('')
   const [idEstado, setIdEstado] = useState(null)   // null = Todos
   const [pagina, setPagina] = useState(1)
@@ -53,6 +95,8 @@ export default function Presupuestos() {
   const inicio = (actual - 1) * POR_PAGINA
   const visibles = filtradas.slice(inicio, inicio + POR_PAGINA)
 
+  const nroEditando = filas.find((f) => f.id === editandoId)?.nro ?? ''
+
   function tocarTarjeta(id) {
     setIdEstado(idEstado === id ? null : id)
     setPagina(1)
@@ -64,6 +108,11 @@ export default function Presupuestos() {
     setIdEstado(null)
     setPagina(1)
     setModalAbierto(false)
+    recargar()
+  }
+
+  function alActualizar() {
+    setEditandoId(null)
     recargar()
   }
 
@@ -120,8 +169,9 @@ export default function Presupuestos() {
             <span className="c-fecha">{fechaCorta(f.fecha)}</span>
             <span className="c-total">{gs(f.total)}</span>
             <span className={'c-estado ' + (ESTADO_CLASE[f.estado] ?? '')}>{f.estado}</span>
-            {/* TODO: ver el detalle del presupuesto */}
-            <button className="btn-ver" aria-label={`Ver ${f.nro}`}><IconSearch /></button>
+            <button className="btn-ver" aria-label={`Editar ${f.nro}`} onClick={() => setEditandoId(f.id)}>
+              <IconPencil />
+            </button>
           </div>
         ))}
 
@@ -138,6 +188,17 @@ export default function Presupuestos() {
           productos={datos.productos}
           onCerrar={() => setModalAbierto(false)}
           onGuardar={guardar} />
+      )}
+
+      {editandoId !== null && datos && (
+        <ModalEditarPresupuesto
+          key={editandoId}
+          id={editandoId}
+          nro={nroEditando}
+          clientes={datos.clientes}
+          productos={datos.productos}
+          onCerrar={() => setEditandoId(null)}
+          onActualizado={alActualizar} />
       )}
     </section>
   )

@@ -10,9 +10,6 @@ export const hoyISO = () => new Date().toLocaleDateString('en-CA')   // YYYY-MM-
 export const hoyLargo = () =>
   new Date().toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
-export const ESTADOS_FACTURA = ['Pagada', 'Pendiente', 'Vencida']
-export const ESTADO_CLASE = { Pagada: 'estado-pagado', Pendiente: 'estado-pendiente', Vencida: 'estado-vencida' }
-
 export const CONDICIONES = ['Contado', 'Crédito']
 export const CONDICION_CLASE = { Contado: 'estado-pagado', Crédito: 'estado-pendiente' }
 
@@ -83,9 +80,9 @@ export const FACTURA_VENTA = {
   lista: {
     titulo: 'Facturas',
     terceroColumna: 'Cliente',
-    estadoColumna: 'Estado',
-    estados: ESTADOS_FACTURA,
-    estadoClase: ESTADO_CLASE,
+    estadoColumna: 'Condición',      // igual que compras: Contado / Crédito, según la factura
+    estados: CONDICIONES,
+    estadoClase: CONDICION_CLASE,
     botonNueva: '+ Nueva Venta',
     rutaNueva: '/ventas/venta-directa',
     placeholder: 'Buscar por número o cliente...',

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { IconSearch, IconChevronDown } from '../Icons'
+import { IconSearch, IconChevronDown, IconReceipt } from '../Icons'
 import Paginacion from '../Paginacion'
 import { fechaCorta, gs } from './facturaConfig'
 
@@ -12,7 +12,8 @@ const POR_PAGINA = 10
 //   cargando    true mientras llega la lista
 //   error       mensaje si falló la carga
 //   onReintentar()  vuelve a pedir la lista
-export default function FacturaLista({ config, facturas = [], cargando = false, error = null, onReintentar }) {
+//   onVer(factura)  abre el detalle de la factura (si no se pasa, el botón queda deshabilitado)
+export default function FacturaLista({ config, facturas = [], cargando = false, error = null, onReintentar, onVer }) {
   const navigate = useNavigate()
   const l = config.lista
   const [busqueda, setBusqueda] = useState('')
@@ -67,8 +68,10 @@ export default function FacturaLista({ config, facturas = [], cargando = false, 
             <span className="c-fecha">{fechaCorta(f.fechaVencimiento)}</span>
             <span className="c-total">{gs(f.total)}</span>
             <span className={'c-estado ' + (l.estadoClase[f.estado] ?? '')}>{f.estado}</span>
-            {/* TODO: ver el detalle de la factura */}
-            <button className="btn-ver" aria-label={`Ver ${f.nro}`}><IconSearch /></button>
+            <button className="btn-ver" aria-label={`Ver detalle de ${f.nro}`}
+                    onClick={() => onVer?.(f)} disabled={!onVer}>
+              <IconReceipt />
+            </button>
           </div>
         ))}
 

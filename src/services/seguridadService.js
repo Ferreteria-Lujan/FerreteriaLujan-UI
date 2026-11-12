@@ -1,6 +1,6 @@
 import { gateway } from '../gateway/client'
 import { RUTAS } from '../gateway/routes'
-import { guardarSesion } from '../gateway/session'
+import { guardarRoles, guardarSesion } from '../gateway/session'
 import { fromLoginResponseDTO, fromMeResponseDTO, toLoginRequestDTO } from '../dto/seguridad'
 
 export async function iniciarSesion(usuario, contrasena) {
@@ -11,6 +11,12 @@ export async function iniciarSesion(usuario, contrasena) {
   )
   const sesion = fromLoginResponseDTO(data)
   guardarSesion({ token: sesion.token, refreshToken: sesion.refreshToken, usuario: usuario.trim() })
+  // Roles para decidir qué botones se muestran. Si /auth/me falla, la sesión queda sin roles (sin permisos extra).
+  try {
+    guardarRoles((await usuarioActual()).roles)
+  } catch {
+    guardarRoles([])
+  }
   return sesion
 }
 
