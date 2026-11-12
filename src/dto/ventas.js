@@ -84,6 +84,7 @@ export const fromFacturaVentaDTO = (f) => ({
 // El backend no genera numero de factura ni calcula el total: se envia lo que calculo el formulario
 export const toFacturaVentaDTO = (d) => ({
   idCliente: d.idCliente,
+  idPresupuesto: d.idPresupuesto ?? null,
   fechaEmision: d.fechaEmision,
   esCredito: !!d.esCredito,
   fechaVencimiento: d.fechaVencimiento || null,
@@ -97,4 +98,13 @@ export const toDetalleFacturaVentaDTO = (idFactura, item) => ({
   idProducto: item.id_producto,
   cantidad: item.cantidad,
   precioUnitario: item.precio_unitario,
+})
+
+// Línea de factura de venta (el detalle trae solo idProducto; código y nombre se cruzan en el servicio)
+export const fromDetalleFacturaVentaDTO = (d) => ({
+  id: d.id,
+  idFactura: d.idFactura,
+  idProducto: d.idProducto,
+  cantidad: Number(d.cantidad ?? 0),
+  precioUnitario: Number(d.precioUnitario ?? 0),
 })

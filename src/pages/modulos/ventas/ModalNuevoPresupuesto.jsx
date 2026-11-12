@@ -48,12 +48,15 @@ const ESTILOS = `
 .mnp-quitar { height: 32px; border: 0; background: none; color: var(--mnp-danger); font-size: 1.2rem; cursor: pointer; }
 .mnp-total { text-align: right; font-size: .9rem; color: var(--mnp-texto); }
 .mnp-total b { color: var(--mnp-accent); font-family: Consolas, monospace; font-weight: 400; }
-.mnp-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
+.mnp-acciones { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 4px; }
 .mnp-acciones button { height: 44px; border-radius: 4px; font: inherit; font-size: 1rem; cursor: pointer; }
-.mnp-acciones button:hover { filter: brightness(1.15); }
+.mnp-acciones button:hover:not(:disabled) { filter: brightness(1.15); }
 .mnp-acciones button:disabled { opacity: .6; cursor: progress; }
 .mnp-cancelar { background: #464646; color: var(--mnp-texto); border: 1px solid #5a5a5a; }
 .mnp-guardar { background: var(--mnp-accent); color: #fff; border: 1px solid var(--mnp-accent); font-weight: 700; }
+.mnp-generar { background: #2e9e4f; color: #fff; border: 1px solid #2e9e4f; font-weight: 700; }
+.mnp-generar:disabled { opacity: .45; cursor: not-allowed; }
+.mnp-aviso { margin: 0; text-align: right; font-size: .7rem; color: var(--mnp-muted); }
 @media (max-width: 640px) {
   .mnp-items-cab { display: none; }
   .mnp-item { grid-template-columns: 1fr 1fr 32px; }
@@ -65,23 +68,51 @@ const gs = (n) => n.toLocaleString('es-PY') + ' Gs.'
 const etiquetaProducto = (p) => `${p.codigo} · ${p.nombre}`
 
 let secuencia = 0
-const nuevoItem = () => ({ key: ++secuencia, texto: '', id_producto: null, cantidad: '1', precio: '' })
+const nuevoItem = (campos = {}) => ({
+  key: ++secuencia, id: null, texto: '', id_producto: null, cantidad: '1', precio: '', ...campos,
+})
 
 // Un item esta completo si tiene producto valido, cantidad > 0 y precio >= 0
 const itemIncompleto = (i) => i.id_producto === null || !(Number(i.cantidad) > 0) || i.precio === '' || Number(i.precio) < 0
 
-// Modal "Nuevo Presupuesto". Al guardar llama onGuardar({ id_cliente, detalles: [{ id_producto, cantidad, precio_unitario }] }).
-// onGuardar puede ser async: si lanza, el modal queda abierto y muestra el mensaje del servidor.
-// clientes: [{ id_cliente, etiqueta }]   productos: [{ id_producto, codigo, nombre, precio_venta }]
-export default function ModalNuevoPresupuesto({ clientes, productos, onCerrar, onGuardar }) {
-  const [idCliente, setIdCliente] = useState('')
-  const [items, setItems] = useState(() => [nuevoItem()])
+// Firma de lo que se guarda: sirve para saber si hay cambios sin guardar
+const firma = (idCliente, items) => JSON.stringify([
+  idCliente,
+  items.map(({ id, id_producto, cantidad, precio }) => [id, id_producto, cantidad, precio]),
+])
+
+// Modal de alta y de edición de presupuestos.
+//   inicial    null = alta. Objeto { idCliente, detalles: [{ idDetalle, id_producto, cantidad, precio }] } = edición
+//   onGuardar(payload)        payload: { id_cliente, detalles: [{ id, id_producto, cantidad, precio_unitario }] }
+//   onGenerarFactura()        si se pasa (solo en edición), muestra el botón verde
+//   puedeGenerarFactura       false si el presupuesto ya fue convertido
+// onGuardar / onGenerarFactura pueden ser async: si lanzan, el modal queda abierto y muestra el mensaje.
+export default function ModalNuevoPresupuesto({
+  titulo = 'Nuevo Presupuesto', inicial = null, clientes, productos,
+  puedeGenerarFactura = false, onCerrar, onGuardar, onGenerarFactura,
+}) {
+  const editando = inicial !== null
+  const [idCliente, setIdCliente] = useState(inicial ? String(inicial.idCliente) : '')
+  const [items, setItems] = useState(() => (inicial
+    ? inicial.detalles.map((d) => {
+        const p = productos.find((x) => x.id_producto === d.id_producto)
+        return nuevoItem({
+          id: d.idDetalle,
+          texto: p ? etiquetaProducto(p) : `Producto #${d.id_producto}`,
+          id_producto: d.id_producto,
+          cantidad: String(d.cantidad),
+          precio: String(d.precio),
+        })
+      })
+    : [nuevoItem()]))
+  const [firmaInicial] = useState(() => firma(idCliente, items))
   const [intentado, setIntentado] = useState(false)
-  const [guardando, setGuardando] = useState(false)
+  const [operacion, setOperacion] = useState(null)   // null | 'guardar' | 'generar'
   const [errorServidor, setErrorServidor] = useState(null)
+  const ocupado = operacion !== null
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape' && !guardando) onCerrar() }
+    const onKey = (e) => { if (e.key === 'Escape' && !ocupado) onCerrar() }
     document.addEventListener('keydown', onKey)
     const overflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'   // la pantalla de atras no scrollea mientras el modal esta abierto
@@ -89,9 +120,10 @@ export default function ModalNuevoPresupuesto({ clientes, productos, onCerrar, o
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = overflow
     }
-  }, [onCerrar, guardando])
+  }, [onCerrar, ocupado])
 
   const total = items.reduce((s, i) => s + (Number(i.cantidad) || 0) * (Number(i.precio) || 0), 0)
+  const hayCambios = editando && firma(idCliente, items) !== firmaInicial
 
   const errores = {
     cliente: !idCliente && 'Selecciona un cliente',
@@ -114,42 +146,48 @@ export default function ModalNuevoPresupuesto({ clientes, productos, onCerrar, o
       : { texto, id_producto: null })
   }
 
-  async function enviar(e) {
-    e.preventDefault()
-    setIntentado(true)
-    if (hayErrores || guardando) return
-    setErrorServidor(null)
-    setGuardando(true)
-    try {
-      await onGuardar({
-        id_cliente: Number(idCliente),
-        detalles: items.map(({ id_producto, cantidad, precio }) => ({
-          id_producto,
-          cantidad: Number(cantidad),
-          precio_unitario: Number(precio),
-        })),
-      })
-    } catch (err) {
-      setErrorServidor(err.userMessage || err.message || 'No se pudo guardar el presupuesto')
-      setGuardando(false)
+  function payload() {
+    return {
+      id_cliente: Number(idCliente),
+      detalles: items.map(({ id, id_producto, cantidad, precio }) => ({
+        id, id_producto, cantidad: Number(cantidad), precio_unitario: Number(precio),
+      })),
     }
+  }
+
+  async function correr(op, valido, fn) {
+    setIntentado(true)
+    if (!valido || ocupado) return
+    setErrorServidor(null)
+    setOperacion(op)
+    try {
+      await fn()
+    } catch (err) {
+      setErrorServidor(err.userMessage || err.message || 'No se pudo completar la operación')
+      setOperacion(null)
+    }
+  }
+
+  function enviar(e) {
+    e.preventDefault()
+    correr('guardar', !hayErrores, () => onGuardar(payload()))
   }
 
   // Portal: se dibuja sobre el <body>, por encima de toda la pantalla actual
   return createPortal(
-    <div className="mnp-fondo" onMouseDown={(e) => { if (e.target === e.currentTarget && !guardando) onCerrar() }}>
+    <div className="mnp-fondo" onMouseDown={(e) => { if (e.target === e.currentTarget && !ocupado) onCerrar() }}>
       <style>{ESTILOS}</style>
       <form className="mnp-modal" role="dialog" aria-modal="true" aria-labelledby="modal-presupuesto-titulo"
             noValidate onSubmit={enviar}>
         <div className="mnp-cabecera">
-          <h2 id="modal-presupuesto-titulo">Nuevo Presupuesto</h2>
-          <button type="button" className="mnp-cerrar" aria-label="Cerrar" onClick={onCerrar} disabled={guardando}>×</button>
+          <h2 id="modal-presupuesto-titulo">{titulo}</h2>
+          <button type="button" className="mnp-cerrar" aria-label="Cerrar" onClick={onCerrar} disabled={ocupado}>×</button>
         </div>
 
         <div className="mnp-cuerpo">
           <div className="mnp-campo">
             <label htmlFor="pre-cliente">Cliente</label>
-            <select id="pre-cliente" value={idCliente} disabled={guardando}
+            <select id="pre-cliente" value={idCliente} disabled={ocupado}
                     className={intentado && errores.cliente ? 'mnp-invalida' : undefined}
                     onChange={(e) => setIdCliente(e.target.value)}>
               <option value="">Seleccionar cliente...</option>
@@ -161,7 +199,7 @@ export default function ModalNuevoPresupuesto({ clientes, productos, onCerrar, o
           <div className="mnp-seccion">
             <div className="mnp-secc-cabecera">
               <span className="mnp-titulo">Productos del Presupuesto</span>
-              <button type="button" className="mnp-agregar" disabled={guardando}
+              <button type="button" className="mnp-agregar" disabled={ocupado}
                       onClick={() => setItems((p) => [...p, nuevoItem()])}>
                 + Agregar item
               </button>
@@ -174,16 +212,16 @@ export default function ModalNuevoPresupuesto({ clientes, productos, onCerrar, o
               {items.map((i) => (
                 <div className="mnp-item" key={i.key}>
                   <input className={'mnp-prod' + (intentado && i.id_producto === null ? ' mnp-invalida' : '')}
-                         list="lista-productos-presupuesto" aria-label="Producto" disabled={guardando}
+                         list="lista-productos-presupuesto" aria-label="Producto" disabled={ocupado}
                          placeholder="Buscar por nombre o codigo..."
                          value={i.texto} onChange={(e) => cambiarProducto(i.key, e.target.value)} />
-                  <input aria-label="Cantidad" type="number" min="1" inputMode="numeric" disabled={guardando}
+                  <input aria-label="Cantidad" type="number" min="1" inputMode="numeric" disabled={ocupado}
                          className={intentado && !(Number(i.cantidad) > 0) ? 'mnp-invalida' : undefined}
                          value={i.cantidad} onChange={(e) => cambiarItem(i.key, { cantidad: e.target.value })} />
-                  <input aria-label="Precio" type="number" min="0" inputMode="numeric" placeholder="0" disabled={guardando}
+                  <input aria-label="Precio" type="number" min="0" inputMode="numeric" placeholder="0" disabled={ocupado}
                          className={intentado && (i.precio === '' || Number(i.precio) < 0) ? 'mnp-invalida' : undefined}
                          value={i.precio} onChange={(e) => cambiarItem(i.key, { precio: e.target.value })} />
-                  <button type="button" className="mnp-quitar" aria-label="Quitar item" disabled={guardando}
+                  <button type="button" className="mnp-quitar" aria-label="Quitar item" disabled={ocupado}
                           onClick={() => setItems((p) => p.filter((x) => x.key !== i.key))}>×</button>
                 </div>
               ))}
@@ -199,11 +237,20 @@ export default function ModalNuevoPresupuesto({ clientes, productos, onCerrar, o
           {errorServidor && <span className="mnp-error" role="alert">{errorServidor}</span>}
 
           <div className="mnp-acciones">
-            <button type="button" className="mnp-cancelar" onClick={onCerrar} disabled={guardando}>Cancelar</button>
-            <button type="submit" className="mnp-guardar" disabled={guardando}>
-              {guardando ? 'Guardando...' : 'Guardar Presupuesto'}
+            <button type="button" className="mnp-cancelar" onClick={onCerrar} disabled={ocupado}>Cancelar</button>
+            {editando && onGenerarFactura && (
+              <button type="button" className="mnp-generar"
+                      disabled={ocupado || hayCambios || !puedeGenerarFactura}
+                      onClick={() => correr('generar', true, () => onGenerarFactura())}>
+                {operacion === 'generar' ? 'Generando...' : 'Generar factura'}
+              </button>
+            )}
+            <button type="submit" className="mnp-guardar" disabled={ocupado}>
+              {operacion === 'guardar' ? 'Guardando...' : editando ? 'Guardar Cambios' : 'Guardar Presupuesto'}
             </button>
           </div>
+          {editando && hayCambios && <p className="mnp-aviso">Guardá los cambios antes de generar la factura.</p>}
+          {editando && !puedeGenerarFactura && <p className="mnp-aviso">Este presupuesto ya fue convertido en factura.</p>}
         </div>
       </form>
     </div>,

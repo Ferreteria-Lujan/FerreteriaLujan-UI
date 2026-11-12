@@ -6,14 +6,15 @@ import { createPortal } from 'react-dom'
  *
  * Props
  *   title      string
- *   campos     { label, value }[]                       Datos de cabecera, uno debajo de otro
+ *   campos     { label, value }[]                       Datos de cabecera (grilla de 2 columnas)
  *   columnas   { key, label, align?: 'right', mono?: boolean }[]   Columnas de la tabla
  *   filas      object[]                                 Filas de la tabla (valores ya formateados)
  *   total      string                                   Total mostrado al pie de la tabla
+ *   mensaje    string                                   Texto de estado (cargando / error) bajo los campos
  *   onClose    () => void                               ✕, Cerrar, Esc y clic en el fondo
  *   width      number | string                          default 780
  */
-export default function DetalleModal({ title, campos = [], columnas = [], filas = [], total, onClose, width = 780 }) {
+export default function DetalleModal({ title, campos = [], columnas = [], filas = [], total, mensaje, onClose, width = 780 }) {
   const uid = useId()
   const cerrar = useRef(null)
   const grid = { gridTemplateColumns: columnas.map((c) => c.ancho ?? '1fr').join(' ') }
@@ -42,6 +43,8 @@ export default function DetalleModal({ title, campos = [], columnas = [], filas 
               </div>
             ))}
           </dl>
+
+          {mensaje && <p className="sin-resultados">{mensaje}</p>}
 
           {columnas.length > 0 && (
             <div className="dm-tabla">
