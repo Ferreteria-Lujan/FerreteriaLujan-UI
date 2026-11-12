@@ -47,7 +47,7 @@ export async function crearCliente(form) {
 export async function listarPresupuestos() {
   const [pres, dets, cls, ests] = await Promise.all([
     presupuestos.listar({ sort: 'idPresupuesto,desc' }),
-    presupuestosDetalle.buscar({}, { sort: 'idPresupuesto,desc' }),
+    presupuestosDetalle.buscar({}, { sort: 'idPresupuestoDetalle,desc' }),
     clientes.listar({ sort: 'nombre,asc' }),
     estados.listar(),
   ])
