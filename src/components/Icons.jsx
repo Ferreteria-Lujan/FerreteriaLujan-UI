@@ -55,3 +55,6 @@ export const IconCart = () => (
 export const IconTag = () => (
   <svg {...base}><path d="M3 12V4h8l10 10-8 8z" /><circle cx="7.5" cy="8.5" r="1.3" /></svg>
 )
+export const IconTrash = () => (
+  <svg {...base}><path d="M4 7h16M10 11v6M14 11v6" /><path d="M6 7l1 13h10l1-13" /><path d="M9 7V4h6v3" /></svg>
+)

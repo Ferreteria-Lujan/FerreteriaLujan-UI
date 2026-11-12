@@ -15,14 +15,16 @@ export default function InventarioShell({ busqueda, onBusqueda, placeholder, est
           <input type="search" placeholder={placeholder} aria-label="Buscar" value={busqueda}
                  onChange={(e) => onBusqueda(e.target.value)} />
         </label>
-        <label className="filtro-estado">
-          Estado:
-          <select value={estado} onChange={(e) => onEstado(e.target.value)}>
-            <option value="Todos">Todos</option>
-            {estados.map((e) => <option key={e} value={e}>{e}</option>)}
-          </select>
-          <IconChevronDown />
-        </label>
+        {estados && (
+          <label className="filtro-estado">
+            Estado:
+            <select value={estado} onChange={(e) => onEstado(e.target.value)}>
+              <option value="Todos">Todos</option>
+              {estados.map((e) => <option key={e} value={e}>{e}</option>)}
+            </select>
+            <IconChevronDown />
+          </label>
+        )}
       </div>
 
       <div className="tabla-ventas tabla-inventario">

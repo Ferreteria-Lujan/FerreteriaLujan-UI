@@ -1,12 +1,14 @@
 // Configuraciones de FormModal por entidad. Para un módulo nuevo: definir { title, fields }.
 
 // Los depósitos vienen del backend, por eso es una función
-export const productoModalConfig = (depositos = []) => ({
+export const productoModalConfig = (depositos = [], marcas = [], categorias = []) => ({
   title: 'Nuevo Producto',
   cancelLabel: 'Cancelar',
   fields: [
     { name: 'codigo', label: 'Código', placeholder: 'PRD-000001', required: true },
     { name: 'nombre', label: 'Nombre', placeholder: 'Nombre del producto', required: true },
+    { name: 'marca', label: 'Marca', type: 'select', options: marcas, placeholder: 'Seleccionar marca', required: true, half: true },
+    { name: 'categoria', label: 'Categoría', type: 'select', options: categorias, placeholder: 'Sin categoría', half: true },
     { name: 'cantidad', label: 'Cantidad', type: 'number', min: 0, step: 1, placeholder: '0', required: true, half: true },
     { name: 'precioCompra', label: 'Precio Compra', type: 'number', min: 0, placeholder: '0', required: true, half: true },
     { name: 'precioVenta', label: 'Precio Venta', type: 'number', min: 0, placeholder: '0', required: true, half: true },

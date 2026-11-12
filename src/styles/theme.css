@@ -137,6 +137,7 @@ body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--
 }
 .btn-ver:hover { filter: brightness(1.3); }
 .btn-ver svg { width: 16px; height: 16px; }
+.btn-ver--peligro { color: var(--danger); }
 .tabla-ventas .espacio { flex: 1; }
 .paginacion {
   display: flex; justify-content: center; align-items: center; gap: 8px;
@@ -447,10 +448,12 @@ textarea.fm-control { resize: vertical; min-height: 72px; line-height: 1.4; }
 .fm-btn:disabled { opacity: .6; cursor: progress; }
 .fm-btn--primary { background: var(--accent); border: 0; }
 .fm-btn--secondary { background: var(--surface); border: .8px solid var(--bg); }
+.fm-btn--danger { background: #c0392b; border: 0; }
+.fm-confirmar { margin: 0 0 16px; font-size: .9375rem; line-height: 1.5; color: var(--text-title); }
 .fm-btn:focus-visible, .fm-close:focus-visible { outline: 2px solid var(--text-title); outline-offset: 2px; }
 @media (max-width: 480px) { .fm-field--half { grid-column: span 2; } }
 
-/* Acciones por fila de las tablas (ver / editar) */
+/* Acciones por fila de las tablas (ver / editar / eliminar) */
 .acciones-fila { display: flex; justify-content: center; gap: 6px; }
 
 /* ---------- DetalleModal (components/DetalleModal.jsx) ---------- */
