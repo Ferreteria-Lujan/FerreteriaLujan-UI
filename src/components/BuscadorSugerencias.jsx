@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-const MAX_SUGERENCIAS = 8
+const MAX_SUGERENCIAS = 100
 
 // Caja de búsqueda con lista de sugerencias propia (reemplaza <datalist>, cuyo desplegable
 // lo dibuja el navegador y no se puede estilar). La lista se dibuja en <body> con position fixed
