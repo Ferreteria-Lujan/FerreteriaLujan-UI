@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import logo from '../assets/logo.svg'
+import logo from '../assets/logo.png'
 import BackButton from './BackButton'
 import NavPrincipal from './NavPrincipal'
 
