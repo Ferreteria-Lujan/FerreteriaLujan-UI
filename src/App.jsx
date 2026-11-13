@@ -3,6 +3,9 @@ import Layout from './components/Layout'
 import Login from './pages/Login'
 import Main from './pages/Main'
 import Pedidos from './pages/modulos/compras/Pedidos'
+import ModalNuevoPedido from './pages/modulos/compras/ModalNuevoPedido'
+import SeguimientoPedido from './pages/modulos/compras/SeguimientoPedido'
+import VerFacturaCompra from './pages/modulos/compras/VerFacturaCompra'
 import FacturasCompras from './pages/modulos/compras/FacturasCompras'
 import NuevaFacturaCompra from './pages/modulos/compras/NuevaFacturaCompra'
 import Proveedores from './pages/modulos/compras/Proveedores'
@@ -37,6 +40,7 @@ export default function App() {
           <Route path="/" element={<Main />} />
           <Route path="/compras" element={<Navigate to="/compras/pedidos" replace />} />
           <Route path="/compras/pedidos" element={<Pedidos />} />
+          <Route path="/compras/nuevo-pedido" element={<ModalNuevoPedido />} />
           <Route path="/compras/facturas" element={<FacturasCompras />} />
           <Route path="/compras/facturas/nueva" element={<NuevaFacturaCompra />} />
           <Route path="/compras/proveedores" element={<Proveedores />} />
