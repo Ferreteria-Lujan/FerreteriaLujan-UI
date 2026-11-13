@@ -1747,6 +1747,4 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.combo-item.activo {
-  background: var(--accent-dark);
-}
+.combo-item.activo { background: var(--accent-dark); }

@@ -45,7 +45,7 @@ async function cargar() {
 // Registro de la tabla -> valores del formulario
 const aFormulario = (p) => ({
   codigo: p.codigo, nombre: p.nombre, descripcion: p.descripcion ?? '',
-  cantidad: p.stock, precioCompra: p.precioCompra ?? '', precioVenta: p.precio,
+  cantidad: p.inventarios.find((i) => i.idDeposito === p.idDeposito)?.cantidad ?? 0, precioCompra: p.precioCompra ?? '', precioVenta: p.precio,
   depositoOrigen: p.idDeposito === '' ? '' : String(p.idDeposito),
   marca: p.idMarca == null ? '' : String(p.idMarca),
   categoria: p.idCategoria == null ? '' : String(p.idCategoria),
@@ -99,14 +99,13 @@ export default function Productos() {
       ? await productosApi.actualizar(editando.id, datosProducto)
       : await productosApi.crear(datosProducto)
 
-    // Stock en el depósito elegido (inventarios)
-    const existente = editando?.inventarios.find((i) => i.idDeposito === idDeposito)
-    const stock = { idDeposito, idProducto: guardado.id, cantidad }
-    if (existente?.id != null) {
-      if (existente.cantidad !== cantidad) await inventariosApi.actualizar(existente.id, { ...existente, cantidad })
-    } else if (!existente) {
-      await inventariosApi.crear(stock)
-    }
+    // Stock en el depósito elegido: se lleva a la cantidad del formulario con la diferencia
+    // (POST /inventarios/incrementar o /descontar; incrementar crea el registro si no existía)
+    const actual = editando?.inventarios.find((i) => i.idDeposito === idDeposito)?.cantidad ?? 0
+    const diferencia = Math.round((cantidad - actual) * 100) / 100
+    const ajuste = { idDeposito, idProducto: guardado.id, cantidad: Math.abs(diferencia) }
+    if (diferencia > 0) await inventariosApi.incrementar(ajuste)
+    else if (diferencia < 0) await inventariosApi.descontar(ajuste)
     setModal(null)
     setPagina(1)
     recargar()

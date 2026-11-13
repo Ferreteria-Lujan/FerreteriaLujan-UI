@@ -5,21 +5,13 @@ import FormModal from '../../../components/FormModal'
 import { depositoModalConfig, campoUnico } from '../../../components/formModalConfigs'
 import { gs } from '../../../components/factura/facturaConfig'
 import useCargar from '../../../hooks/useCargar'
-import { getUsuario } from '../../../gateway/session'
 import {
   productos as productosApi, depositos as depositosApi,
-  transferencias as transferenciasApi, detallesTransferencia as detallesApi,
+  transferencias as transferenciasApi, inventarios as inventariosApi,
 } from '../../../services/inventarioService'
 
 // ms-inventario: DepositoDTO solo tiene nombre
 const configDeposito = { ...depositoModalConfig, fields: depositoModalConfig.fields.filter((f) => f.name === 'nombre') }
-
-// LocalDateTime en hora local (toISOString usa UTC)
-const ahoraLocal = () => {
-  const d = new Date()
-  const p = (n) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
-}
 
 async function cargar() {
   const [prods, deps] = await Promise.all([productosApi.listarTodo({ sort: 'codigo,asc' }), depositosApi.listarTodo()])
@@ -40,6 +32,7 @@ export default function NuevaTransferencia() {
   const [modalDeposito, setModalDeposito] = useState(false)
   const [cantidad, setCantidad] = useState(1)
   const [items, setItems] = useState([])
+  const [errorItem, setErrorItem] = useState('')
 
   const producto = PRODUCTOS.find((p) =>
     etiqueta(p) === busqueda || p.codigo.toLowerCase() === busqueda.trim().toLowerCase())
@@ -52,8 +45,18 @@ export default function NuevaTransferencia() {
   const deposito = origenOk ? origen : ''
   const total = items.reduce((s, i) => s + i.precio * i.cantidad, 0)
 
-  function agregar() {
+  async function agregar() {
     if (!producto) return
+    setErrorItem('')
+    // Avisa antes de enviar si el origen no tiene stock (GET /inventarios/stock). El backend lo valida igual.
+    const yaAgregado = items.find((i) => i.id === producto.id)?.cantidad ?? 0
+    try {
+      const disponible = await inventariosApi.consultarStock(depOrigen.id, producto.id)
+      if (yaAgregado + cantidad > disponible) {
+        setErrorItem(`Stock insuficiente en ${depOrigen.nombre}: disponible ${disponible}, ya agregado ${yaAgregado}`)
+        return
+      }
+    } catch { /* si la consulta falla, decide el backend al confirmar */ }
     setItems((prev) => prev.some((i) => i.id === producto.id)
       ? prev.map((i) => i.id === producto.id ? { ...i, cantidad: i.cantidad + cantidad } : i)
       : [...prev, { id: producto.id, codigo: producto.codigo, nombre: producto.nombre, precio: producto.precio, cantidad }])
@@ -67,32 +70,19 @@ export default function NuevaTransferencia() {
     recargar()
   }
 
-  // Cabecera + una linea por producto (hasta que exista el DTO compuesto, Tarea 5).
-  // Si falla una linea se intenta deshacer la cabecera (DELETE solo funciona con rol ADMIN).
+  // POST /transferencias/procesar: una sola peticion; el backend guarda cabecera y detalles y mueve el stock
   async function confirmar() {
     setErrorEnvio('')
     setEnviando(true)
-    let cabecera = null
-    const lineas = []
     try {
-      cabecera = await transferenciasApi.crear({
-        fechaCreacion: ahoraLocal(), creador: getUsuario(),
-        idDepositoOrigen: depOrigen.id, idDepositoDestino: depDestino.id,
+      await transferenciasApi.procesar({
+        idDepositoOrigen: depOrigen.id,
+        idDepositoDestino: depDestino.id,
+        items: items.map((i) => ({ idProducto: i.id, cantidad: i.cantidad })),
       })
-      for (const i of items) {
-        lineas.push(await detallesApi.crear({ idTransferencia: cabecera.id, idProducto: i.id, cantidad: i.cantidad }))
-      }
       navigate('/inventario/transferencias')
     } catch (err) {
-      let msg = err.userMessage || err.message || 'No se pudo crear la transferencia'
-      if (cabecera) {
-        try {
-          for (const l of lineas) await detallesApi.eliminar(l.id)   // sin cascada: primero las lineas ya creadas
-          await transferenciasApi.eliminar(cabecera.id)
-        }
-        catch { msg += ' La transferencia quedó incompleta: pedile a un administrador que la elimine.' }
-      }
-      setErrorEnvio(msg)
+      setErrorEnvio(err.userMessage || err.message || 'No se pudo procesar la transferencia')
     } finally {
       setEnviando(false)
     }
@@ -164,6 +154,7 @@ export default function NuevaTransferencia() {
 
             <button type="button" className="btn-agregar" disabled={!producto || !origenOk} onClick={agregar}>+ Agregar</button>
           </div>
+          {errorItem && <p className="campo-error" role="alert">{errorItem}</p>}
         </div>
 
         {/* 3. Productos de la transferencia */}
