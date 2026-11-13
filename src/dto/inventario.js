@@ -74,3 +74,23 @@ export const toDetalleTransferenciaDTO = (d) => ({
   idProducto: d.idProducto,
   cantidad: d.cantidad,
 })
+
+// POST /transferencias/procesar: cabecera + items. El creador y la fecha de creacion los pone el backend.
+export const toProcesarTransferenciaDTO = (t) => ({
+  idDepositoOrigen: t.idDepositoOrigen,
+  idDepositoDestino: t.idDepositoDestino,
+  fechaEstimada: t.fechaEstimada ?? null,
+  items: t.items.map((i) => ({ idProducto: i.idProducto, cantidad: i.cantidad })),
+})
+// -> TransferenciaProcesadaDTO { transferencia, detalles }
+export const fromTransferenciaProcesadaDTO = (r) => ({
+  transferencia: fromTransferenciaDTO(r.transferencia),
+  detalles: (r.detalles ?? []).map(fromDetalleTransferenciaDTO),
+})
+
+// POST /inventarios/incrementar y /inventarios/descontar (AjusteStockRequest)
+export const toAjusteStockDTO = (a) => ({
+  idDeposito: a.idDeposito,
+  idProducto: a.idProducto,
+  cantidad: a.cantidad,
+})
