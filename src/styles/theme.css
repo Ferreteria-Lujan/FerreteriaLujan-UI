@@ -544,3 +544,46 @@ body { overflow: hidden; }
   font-size: .85rem; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .combo-item.activo { background: var(--accent-dark); }
+
+/* ---------- Páginas de error 400 / 500 ---------- */
+.error-page {
+  flex: 1; min-height: 0; padding: 32px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; font-family: var(--font-ventas);
+}
+.error-icono {
+  width: 112px; height: 112px; display: grid; place-items: center;
+  color: var(--accent); background: var(--surface);
+  border: 2px solid var(--accent); border-radius: 28px;
+  box-shadow: 0 12px 28px rgba(0,0,0,.3);
+}
+.error-icono svg {
+  width: 62px; height: 62px; stroke: currentColor; stroke-width: 3;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.error-codigo {
+  margin: 28px 0 6px; color: var(--accent);
+  font-size: .8rem; font-weight: 700; letter-spacing: .14em;
+}
+.error-page h1 {
+  margin: 0; color: var(--text-title);
+  font-size: clamp(2rem, 4vw, 3rem); line-height: 1.15;
+}
+.error-mensaje {
+  max-width: 570px; margin: 18px 0 0;
+  color: var(--text-muted); font-size: 1rem; line-height: 1.65;
+}
+.error-ayuda {
+  margin: 8px 0 0; color: #818181; font-size: .85rem;
+}
+.error-acciones {
+  margin-top: 28px; display: flex; justify-content: center; gap: 12px;
+}
+@media (max-width: 520px) {
+  .error-page { padding: 24px 16px; }
+  .error-icono { width: 92px; height: 92px; border-radius: 22px; }
+  .error-icono svg { width: 50px; height: 50px; }
+  .error-acciones { width: 100%; flex-direction: column; }
+  .error-acciones .btn { width: 100%; }
+}
+
