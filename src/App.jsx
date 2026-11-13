@@ -14,6 +14,7 @@ import Productos from './pages/modulos/inventario/Productos'
 import Transferencias from './pages/modulos/inventario/Transferencias'
 import NuevaTransferencia from './pages/modulos/inventario/NuevaTransferencia'
 import Reportes from './pages/modulos/Reportes'
+import ErrorPage from './pages/ErrorPage'
 import { isLoggedIn } from './gateway/session'
 
 // Rutas protegidas: sin sesión iniciada, siempre se vuelve al login
@@ -33,6 +34,8 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/login" element={<SoloInvitado />} />
+        <Route path="/400" element={<ErrorPage code={400} />} />
+        <Route path="/500" element={<ErrorPage code={500} />} />
         <Route element={<RequireAuth />}>
           <Route path="/" element={<Main />} />
           <Route path="/compras" element={<Navigate to="/compras/pedidos" replace />} />
@@ -51,7 +54,7 @@ export default function App() {
           <Route path="/stock" element={<Navigate to="/inventario" replace />} />
           <Route path="/reportes" element={<Reportes />} />
         </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<ErrorPage code={400} />} />
       </Route>
     </Routes>
   )
